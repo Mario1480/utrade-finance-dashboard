@@ -591,6 +591,10 @@ code.badge {
   background: rgba(20, 129, 192, 0.22);
 }
 
+.public-theme .public-mobile-accordion {
+  display: none;
+}
+
 @media (max-width: 1000px) {
   .public-theme .public-kpi-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -674,59 +678,84 @@ code.badge {
 
 @media (max-width: 640px) {
   .public-theme .public-table-wrap {
-    overflow: visible;
-    border: 0;
-    border-radius: 0;
-  }
-
-  .public-theme .public-table {
-    min-width: 0;
-  }
-
-  .public-theme .public-table thead {
     display: none;
   }
 
-  .public-theme .public-table tbody {
+  .public-theme .public-mobile-accordion {
     display: grid;
     gap: 10px;
   }
 
-  .public-theme .public-table tbody tr {
-    display: block;
+  .public-theme .public-mobile-item {
     border: 1px solid rgba(255, 193, 7, 0.28);
     border-radius: 12px;
+    background: rgba(7, 14, 26, 0.65);
+    overflow: hidden;
+  }
+
+  .public-theme .public-mobile-item summary {
+    list-style: none;
+    display: grid;
+    gap: 5px;
     padding: 10px 12px;
-    background: rgba(7, 14, 26, 0.65);
+    cursor: pointer;
+    background: rgba(20, 129, 192, 0.14);
   }
 
-  .public-theme .public-table tbody tr:nth-child(even) {
-    background: rgba(7, 14, 26, 0.65);
+  .public-theme .public-mobile-item summary::-webkit-details-marker {
+    display: none;
   }
 
-  .public-theme .public-table tbody tr:hover {
-    background: rgba(7, 14, 26, 0.8);
+  .public-theme .public-mobile-item summary span {
+    color: #9eb9ce;
+    font-size: 0.72rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    font-weight: 700;
   }
 
-  .public-theme .public-table td {
+  .public-theme .public-mobile-item summary strong {
+    color: #ffe9a2;
+    font-size: 0.95rem;
+    line-height: 1.35;
+    word-break: break-word;
+  }
+
+  .public-theme .public-mobile-grid {
+    display: grid;
+    gap: 8px;
+    padding: 10px 12px 12px;
+  }
+
+  .public-theme .public-mobile-grid > div {
     display: grid;
     gap: 4px;
-    padding: 7px 0;
-    border-bottom: 1px dashed rgba(255, 255, 255, 0.12);
-    color: #e2eaf5;
+    padding-bottom: 8px;
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.14);
   }
 
-  .public-theme .public-table td:last-child {
+  .public-theme .public-mobile-grid > div:last-child {
     border-bottom: 0;
+    padding-bottom: 0;
   }
 
-  .public-theme .public-table td::before {
-    content: attr(data-label);
+  .public-theme .public-mobile-grid span {
     color: #9eb9ce;
     font-size: 0.69rem;
     letter-spacing: 0.05em;
     text-transform: uppercase;
     font-weight: 700;
+  }
+
+  .public-theme .public-mobile-grid strong {
+    color: #e2eaf5;
+    font-size: 0.94rem;
+    line-height: 1.35;
+    word-break: break-word;
+  }
+
+  .public-theme .public-mobile-grid .link-button-group {
+    margin-top: 2px;
   }
 
   .public-theme .public-link-button {
