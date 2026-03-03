@@ -240,61 +240,73 @@ export async function getCommunityMonthStatusOverview() {
 }
 
 export async function getPublishedMonthKeys(): Promise<string[]> {
-  await ensureCommunityMonthStatuses();
-  const approvedMonths = await getApprovedMonthKeys();
+  try {
+    await ensureCommunityMonthStatuses();
+    const approvedMonths = await getApprovedMonthKeys();
 
-  if (approvedMonths.length === 0) {
+    if (approvedMonths.length === 0) {
+      return [];
+    }
+
+    const statuses = await prisma.communityMonthStatus.findMany({
+      where: { month: { in: approvedMonths.map((month) => monthKeyToDate(month)) } },
+      select: { month: true, isClosed: true },
+    });
+
+    const statusMap: CommunityMonthStatusMap = statuses.reduce(
+      (acc, row) => {
+        acc[dateToMonthString(row.month)] = { isClosed: row.isClosed };
+        return acc;
+      },
+      {} as CommunityMonthStatusMap,
+    );
+
+    const currentMonth = dateToMonthString(getCurrentUtcMonthStart());
+    return selectPublishedMonths(approvedMonths, statusMap, currentMonth);
+  } catch (error) {
+    console.error("[community-dashboard] failed to read published months", error);
     return [];
   }
-
-  const statuses = await prisma.communityMonthStatus.findMany({
-    where: { month: { in: approvedMonths.map((month) => monthKeyToDate(month)) } },
-    select: { month: true, isClosed: true },
-  });
-
-  const statusMap: CommunityMonthStatusMap = statuses.reduce(
-    (acc, row) => {
-      acc[dateToMonthString(row.month)] = { isClosed: row.isClosed };
-      return acc;
-    },
-    {} as CommunityMonthStatusMap,
-  );
-
-  const currentMonth = dateToMonthString(getCurrentUtcMonthStart());
-  return selectPublishedMonths(approvedMonths, statusMap, currentMonth);
 }
 
 export async function buildCommunityDashboardData() {
   const months = await getPublishedMonthKeys();
+  const includedMonths: string[] = [];
 
   const monthlyNftPool: CommunityMonthlyNftPool[] = [];
   const monthlyProfitTotals: Array<{ month: string; profitTotal: number }> = [];
 
   for (const month of months) {
-    const data = await getMonthlyDashboard(monthKeyToDate(month));
+    try {
+      const data = await getMonthlyDashboard(monthKeyToDate(month));
 
-    monthlyNftPool.push({
-      month,
-      nftPoolTotal: data.totals.nftProfitPool,
-      bronzeTotal: data.nftProfit.bronze.total,
-      silverTotal: data.nftProfit.silver.total,
-      goldTotal: data.nftProfit.gold.total,
-      bronzePerNft: data.nftProfit.bronze.perNft,
-      silverPerNft: data.nftProfit.silver.perNft,
-      goldPerNft: data.nftProfit.gold.perNft,
-    });
+      includedMonths.push(month);
 
-    monthlyProfitTotals.push({
-      month,
-      profitTotal: data.totals.profitTotal,
-    });
+      monthlyNftPool.push({
+        month,
+        nftPoolTotal: data.totals.nftProfitPool,
+        bronzeTotal: data.nftProfit.bronze.total,
+        silverTotal: data.nftProfit.silver.total,
+        goldTotal: data.nftProfit.gold.total,
+        bronzePerNft: data.nftProfit.bronze.perNft,
+        silverPerNft: data.nftProfit.silver.perNft,
+        goldPerNft: data.nftProfit.gold.perNft,
+      });
+
+      monthlyProfitTotals.push({
+        month,
+        profitTotal: data.totals.profitTotal,
+      });
+    } catch (error) {
+      console.error(`[community-dashboard] skipped month ${month}`, error);
+    }
   }
 
-  const burningRows = months.length
+  const burningRows = includedMonths.length
     ? await prisma.burningEntry.findMany({
         where: {
           status: EntryStatus.APPROVED,
-          month: { in: months.map((month) => monthKeyToDate(month)) },
+          month: { in: includedMonths.map((month) => monthKeyToDate(month)) },
         },
         select: { month: true, token: true, amountToken: true, txUrl: true },
       })
@@ -312,7 +324,7 @@ export async function buildCommunityDashboardData() {
   const totals = computeCommunityTotals(monthlyNftPool, burningMonthly, monthlyProfitTotals);
 
   return {
-    months,
+    months: includedMonths,
     monthlyNftPool,
     burningMonthly,
     totals,
