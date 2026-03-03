@@ -599,15 +599,67 @@ code.badge {
 
 @media (max-width: 768px) {
   .public-theme {
-    padding-top: 18px;
+    padding-top: 14px;
+  }
+
+  .public-theme .container {
+    padding: 14px;
+  }
+
+  .public-theme .public-card {
+    padding: 14px;
+    border-radius: 14px;
   }
 
   .public-theme .public-home-hero {
     padding: 18px;
   }
 
+  .public-theme .public-hero h1 {
+    font-size: 1.45rem;
+  }
+
   .public-theme .public-kpi-grid {
     grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .public-theme .public-kpi-card {
+    min-height: 98px;
+  }
+
+  .public-theme .public-kpi-label {
+    font-size: 0.72rem;
+    margin-bottom: 8px;
+  }
+
+  .public-theme .public-kpi-value {
+    font-size: 1.08rem;
+  }
+
+  .public-theme .community-chart-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .public-theme .community-chart-row:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .public-theme .community-chart-value {
+    text-align: left;
+  }
+
+  .public-theme .community-tier-bars {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .public-theme .public-table {
+    min-width: 640px;
   }
 
   .public-theme .public-home-actions {
@@ -617,5 +669,68 @@ code.badge {
 
   .public-theme .public-btn {
     width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .public-theme .public-table-wrap {
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .public-theme .public-table {
+    min-width: 0;
+  }
+
+  .public-theme .public-table thead {
+    display: none;
+  }
+
+  .public-theme .public-table tbody {
+    display: grid;
+    gap: 10px;
+  }
+
+  .public-theme .public-table tbody tr {
+    display: block;
+    border: 1px solid rgba(255, 193, 7, 0.28);
+    border-radius: 12px;
+    padding: 10px 12px;
+    background: rgba(7, 14, 26, 0.65);
+  }
+
+  .public-theme .public-table tbody tr:nth-child(even) {
+    background: rgba(7, 14, 26, 0.65);
+  }
+
+  .public-theme .public-table tbody tr:hover {
+    background: rgba(7, 14, 26, 0.8);
+  }
+
+  .public-theme .public-table td {
+    display: grid;
+    gap: 4px;
+    padding: 7px 0;
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.12);
+    color: #e2eaf5;
+  }
+
+  .public-theme .public-table td:last-child {
+    border-bottom: 0;
+  }
+
+  .public-theme .public-table td::before {
+    content: attr(data-label);
+    color: #9eb9ce;
+    font-size: 0.69rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+
+  .public-theme .public-link-button {
+    width: 100%;
+    text-align: center;
   }
 }
