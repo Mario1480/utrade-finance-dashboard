@@ -19,7 +19,8 @@ export async function CommunityDashboard() {
 
   try {
     data = await buildCommunityDashboardData();
-  } catch {
+  } catch (error) {
+    console.error("[community-dashboard] render failed", error);
     return <div className="alert error public-alert">Community-Daten konnten nicht geladen werden.</div>;
   }
 
