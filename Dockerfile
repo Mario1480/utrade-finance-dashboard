@@ -9,6 +9,11 @@ RUN npm ci
 FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+ARG BUILD_DATABASE_URL=postgresql://build:build@localhost:5432/build?schema=public
+ARG BUILD_JWT_SECRET=build-secret-012345678901234567890123456789
+ENV DATABASE_URL=$BUILD_DATABASE_URL
+ENV JWT_SECRET=$BUILD_JWT_SECRET
+ENV NEXT_PUBLIC_APP_NAME="uTrade Finance Dashboard"
 RUN npx prisma generate
 RUN npm run build
 
