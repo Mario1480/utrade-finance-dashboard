@@ -16,7 +16,6 @@ export async function GET(request: NextRequest) {
     const rows = await prisma.incomeEntry.findMany({
       where: user.role === UserRole.SUPERADMIN ? undefined : { createdById: user.id },
       orderBy: [{ month: "desc" }, { createdAt: "desc" }],
-      take: 300,
       include: {
         createdBy: { select: { name: true } },
         approvedBy: { select: { name: true } },
