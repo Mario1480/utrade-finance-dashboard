@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: utrade_finance
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/utrade_finance?schema=public
+      JWT_SECRET: this-is-a-ci-secret-at-least-32-characters
+      NEXT_PUBLIC_APP_NAME: uTrade Finance Dashboard
+      SUPERADMIN_EMAIL: admin@utrade.local
+      SUPERADMIN_PASSWORD: ChangeMe123!
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+      - run: npm run prisma:push
+      - run: npm run seed
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build

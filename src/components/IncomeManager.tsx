@@ -1,0 +1,241 @@
+"use client";
+
+import { FormEvent, useEffect, useState } from "react";
+
+type Props = { isSuperadmin: boolean };
+type Row = {
+  id: string;
+  month: string;
+  source: string;
+  amountUsd: number;
+  note: string | null;
+  status: string;
+  createdBy: string;
+};
+
+export function IncomeManager({ isSuperadmin }: Props) {
+  const [rows, setRows] = useState<Row[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [form, setForm] = useState({
+    month: new Date().toISOString().slice(0, 7),
+    source: "PIONEX_BOTS",
+    amountUsd: "",
+    note: "",
+  });
+
+  async function load() {
+    const response = await fetch("/api/finance/income");
+    const json = await response.json();
+    if (!response.ok) {
+      throw new Error(json.error ?? "Fehler beim Laden");
+    }
+    setRows(json.data);
+  }
+
+  useEffect(() => {
+    void load().catch((err) => setError(err.message));
+  }, []);
+
+  function resetForm() {
+    setForm({
+      month: new Date().toISOString().slice(0, 7),
+      source: "PIONEX_BOTS",
+      amountUsd: "",
+      note: "",
+    });
+    setEditingId(null);
+  }
+
+  function startEdit(row: Row) {
+    setEditingId(row.id);
+    setForm({
+      month: row.month,
+      source: row.source,
+      amountUsd: String(row.amountUsd),
+      note: row.note ?? "",
+    });
+    setMessage(null);
+    setError(null);
+  }
+
+  async function onSubmit(event: FormEvent) {
+    event.preventDefault();
+    setError(null);
+    setMessage(null);
+
+    const isEdit = Boolean(editingId);
+    const response = await fetch("/api/finance/income", {
+      method: isEdit ? "PATCH" : "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ...(isEdit ? { id: editingId } : {}),
+        month: form.month,
+        source: form.source,
+        amountUsd: Number(form.amountUsd),
+        note: form.note || undefined,
+      }),
+    });
+
+    const json = await response.json();
+    if (!response.ok) {
+      setError(json.error ?? "Konnte nicht speichern");
+      return;
+    }
+
+    setMessage(isEdit ? "Eintrag aktualisiert" : "Eintrag gespeichert");
+    resetForm();
+    await load();
+  }
+
+  async function deleteRow(id: string) {
+    if (!window.confirm("Eintrag wirklich löschen?")) {
+      return;
+    }
+
+    setError(null);
+    setMessage(null);
+
+    const response = await fetch(`/api/finance/income/${id}`, {
+      method: "DELETE",
+    });
+    const json = await response.json();
+
+    if (!response.ok) {
+      setError(json.error ?? "Löschen fehlgeschlagen");
+      return;
+    }
+
+    if (editingId === id) {
+      resetForm();
+    }
+
+    setMessage("Eintrag gelöscht");
+    await load();
+  }
+
+  async function setStatus(id: string, status: "APPROVED" | "REJECTED") {
+    const response = await fetch(`/api/finance/income/${id}/status`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status }),
+    });
+
+    const json = await response.json();
+    if (!response.ok) {
+      setError(json.error ?? "Statusänderung fehlgeschlagen");
+      return;
+    }
+
+    setMessage(`Status: ${status}`);
+    await load();
+  }
+
+  return (
+    <div className="grid" style={{ gap: 16 }}>
+      <form className="panel" onSubmit={onSubmit}>
+        <h2>{editingId ? "Einnahme bearbeiten" : "Einnahmen erfassen"}</h2>
+        <div className="form-grid">
+          <div>
+            <label>Monat</label>
+            <input
+              type="month"
+              value={form.month}
+              onChange={(event) => setForm({ ...form, month: event.target.value })}
+              required
+            />
+          </div>
+          <div>
+            <label>Quelle</label>
+            <select
+              value={form.source}
+              onChange={(event) => setForm({ ...form, source: event.target.value })}
+            >
+              <option value="PIONEX_BOTS">Pionex Bots</option>
+              <option value="COPY_BINGX">Copy BingX</option>
+              <option value="COPY_MEXC">Copy MEXC</option>
+              <option value="OTHER">Other</option>
+            </select>
+          </div>
+          <div>
+            <label>Betrag USD</label>
+            <input
+              type="number"
+              step="0.01"
+              value={form.amountUsd}
+              onChange={(event) => setForm({ ...form, amountUsd: event.target.value })}
+              required
+            />
+          </div>
+          <div>
+            <label>Notiz</label>
+            <input
+              value={form.note}
+              onChange={(event) => setForm({ ...form, note: event.target.value })}
+            />
+          </div>
+        </div>
+        <div style={{ marginTop: 10, display: "flex", gap: 8 }}>
+          <button type="submit">{editingId ? "Änderungen speichern" : "Speichern"}</button>
+          {editingId ? (
+            <button className="secondary" type="button" onClick={resetForm}>
+              Abbrechen
+            </button>
+          ) : null}
+        </div>
+        {message ? <div className="alert">{message}</div> : null}
+        {error ? <div className="alert error">{error}</div> : null}
+      </form>
+
+      <div className="panel">
+        <h3>Einnahmen</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Monat</th>
+              <th>Quelle</th>
+              <th>USD</th>
+              <th>Status</th>
+              <th>Von</th>
+              <th>Aktion</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row) => (
+              <tr key={row.id}>
+                <td>{row.month}</td>
+                <td>{row.source}</td>
+                <td>{row.amountUsd.toFixed(2)}</td>
+                <td>
+                  <code className="badge">{row.status}</code>
+                </td>
+                <td>{row.createdBy}</td>
+                <td style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                  <button className="secondary" type="button" onClick={() => startEdit(row)}>
+                    Bearbeiten
+                  </button>
+                  <button className="danger" type="button" onClick={() => deleteRow(row.id)}>
+                    Löschen
+                  </button>
+                  {isSuperadmin ? (
+                    <>
+                      <button type="button" onClick={() => setStatus(row.id, "APPROVED")}>OK</button>
+                      <button
+                        className="danger"
+                        type="button"
+                        onClick={() => setStatus(row.id, "REJECTED")}
+                      >
+                        Reject
+                      </button>
+                    </>
+                  ) : null}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,248 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  SUPERADMIN
+  TEAM_USER
+}
+
+enum EntryStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum IncomeSource {
+  PIONEX_BOTS
+  COPY_BINGX
+  COPY_MEXC
+  OTHER
+  MIGRATION
+}
+
+enum ExpenseCostType {
+  MONTHLY
+  ONE_TIME
+}
+
+enum NftTier {
+  BRONZE
+  SILVER
+  GOLD
+}
+
+enum TokenType {
+  UTT
+  USHARK
+}
+
+model User {
+  id                 String         @id @default(cuid())
+  email              String         @unique
+  name               String
+  passwordHash       String         @map("password_hash")
+  role               UserRole
+  isActive           Boolean        @default(true) @map("is_active")
+  mustChangePassword Boolean        @default(true) @map("must_change_password")
+  createdAt          DateTime       @default(now()) @map("created_at")
+  updatedAt          DateTime       @updatedAt @map("updated_at")
+
+  createdIncomes     IncomeEntry[]  @relation("IncomeCreatedBy")
+  approvedIncomes    IncomeEntry[]  @relation("IncomeApprovedBy")
+  createdExpenses    ExpenseEntry[] @relation("ExpenseCreatedBy")
+  approvedExpenses   ExpenseEntry[] @relation("ExpenseApprovedBy")
+  createdNftSales    NftMonthlySale[] @relation("NftSaleCreatedBy")
+  approvedNftSales   NftMonthlySale[] @relation("NftSaleApprovedBy")
+  createdBurning     BurningEntry[] @relation("BurningCreatedBy")
+  approvedBurning    BurningEntry[] @relation("BurningApprovedBy")
+  closedCommunityMonths CommunityMonthStatus[] @relation("CommunityMonthClosedBy")
+  audits             AuditLog[]     @relation("AuditActor")
+
+  @@map("users")
+}
+
+model IncomeEntry {
+  id          String      @id @default(cuid())
+  month       DateTime
+  source      IncomeSource
+  amountUsd   Decimal     @db.Decimal(18, 6) @map("amount_usd")
+  note        String?
+  status      EntryStatus @default(PENDING)
+  createdById String      @map("created_by")
+  approvedById String?    @map("approved_by")
+  approvedAt  DateTime?   @map("approved_at")
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+
+  createdBy   User        @relation("IncomeCreatedBy", fields: [createdById], references: [id])
+  approvedBy  User?       @relation("IncomeApprovedBy", fields: [approvedById], references: [id])
+
+  @@index([month])
+  @@index([status])
+  @@map("income_entries")
+}
+
+model ExpenseEntry {
+  id          String          @id @default(cuid())
+  month       DateTime
+  category    String
+  vendor      String
+  costType    ExpenseCostType @map("cost_type")
+  amountUsd   Decimal         @db.Decimal(18, 6) @map("amount_usd")
+  note        String?
+  status      EntryStatus     @default(PENDING)
+  createdById String          @map("created_by")
+  approvedById String?        @map("approved_by")
+  approvedAt  DateTime?       @map("approved_at")
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @updatedAt @map("updated_at")
+
+  createdBy   User            @relation("ExpenseCreatedBy", fields: [createdById], references: [id])
+  approvedBy  User?           @relation("ExpenseApprovedBy", fields: [approvedById], references: [id])
+
+  @@index([month])
+  @@index([status])
+  @@map("expense_entries")
+}
+
+model NftMonthlySale {
+  id           String      @id @default(cuid())
+  month        DateTime
+  tier         NftTier
+  soldCount    Int         @map("sold_count")
+  unitPriceUsd Decimal     @db.Decimal(18, 6) @map("unit_price_usd")
+  status       EntryStatus @default(PENDING)
+  createdById  String      @map("created_by")
+  approvedById String?     @map("approved_by")
+  approvedAt   DateTime?   @map("approved_at")
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
+
+  createdBy    User        @relation("NftSaleCreatedBy", fields: [createdById], references: [id])
+  approvedBy   User?       @relation("NftSaleApprovedBy", fields: [approvedById], references: [id])
+
+  @@unique([month, tier])
+  @@index([status])
+  @@map("nft_monthly_sales")
+}
+
+model AllocationRule {
+  id             String   @id @default(cuid())
+  validFrom      DateTime @unique @map("valid_from")
+  nftPoolPct     Decimal  @db.Decimal(10, 6) @map("nft_pool_pct")
+  buybackUttPct  Decimal  @db.Decimal(10, 6) @map("buyback_utt_pct")
+  buybackUsharkPct Decimal @db.Decimal(10, 6) @map("buyback_ushark_pct")
+  teamPct        Decimal  @db.Decimal(10, 6) @map("team_pct")
+  treasuryPct    Decimal  @db.Decimal(10, 6) @map("treasury_pct")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@map("allocation_rules")
+}
+
+model NftTierRule {
+  id               String   @id @default(cuid())
+  validFrom        DateTime @unique @map("valid_from")
+  bronzeMultiplier Decimal  @db.Decimal(10, 6) @map("bronze_multiplier")
+  silverMultiplier Decimal  @db.Decimal(10, 6) @map("silver_multiplier")
+  goldMultiplier   Decimal  @db.Decimal(10, 6) @map("gold_multiplier")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  @@map("nft_tier_rules")
+}
+
+model NftSaleSplitRule {
+  id                  String   @id @default(cuid())
+  validFrom           DateTime @unique @map("valid_from")
+  tradingPct          Decimal  @db.Decimal(10, 6) @map("trading_pct")
+  infrastructurePct   Decimal  @db.Decimal(10, 6) @map("infrastructure_pct")
+  operationsPct       Decimal  @db.Decimal(10, 6) @map("operations_pct")
+  createdAt           DateTime @default(now()) @map("created_at")
+
+  @@map("nft_sale_split_rules")
+}
+
+model TeamMember {
+  id            String   @id @default(cuid())
+  name          String
+  payoutPct     Decimal  @db.Decimal(10, 6) @map("payout_pct")
+  walletChain   String?  @map("wallet_chain")
+  walletAddress String?  @map("wallet_address")
+  isActive      Boolean  @default(true) @map("is_active")
+  validFrom     DateTime @default(now()) @map("valid_from")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@index([isActive])
+  @@map("team_members")
+}
+
+model BurningEntry {
+  id           String      @id @default(cuid())
+  month        DateTime
+  token        TokenType
+  amountToken  Decimal     @db.Decimal(28, 6) @map("amount_token")
+  txUrl        String      @map("tx_url")
+  chain        String
+  status       EntryStatus @default(PENDING)
+  createdById  String      @map("created_by")
+  approvedById String?     @map("approved_by")
+  approvedAt   DateTime?   @map("approved_at")
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
+
+  createdBy    User        @relation("BurningCreatedBy", fields: [createdById], references: [id])
+  approvedBy   User?       @relation("BurningApprovedBy", fields: [approvedById], references: [id])
+
+  @@index([month])
+  @@index([status])
+  @@map("burning_entries")
+}
+
+model ProjectAddress {
+  id          String   @id @default(cuid())
+  label       String
+  amountValue Decimal? @db.Decimal(28, 6) @map("amount_value")
+  asset       String
+  chain       String
+  address     String
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("project_addresses")
+}
+
+model CommunityMonthStatus {
+  id         String   @id @default(cuid())
+  month      DateTime @unique
+  isClosed   Boolean  @default(false) @map("is_closed")
+  closedAt   DateTime? @map("closed_at")
+  closedById String?   @map("closed_by_id")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  closedBy   User? @relation("CommunityMonthClosedBy", fields: [closedById], references: [id])
+
+  @@index([isClosed, month])
+  @@map("community_month_status")
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  actorUserId String?  @map("actor_user_id")
+  entityType  String   @map("entity_type")
+  entityId    String   @map("entity_id")
+  action      String
+  beforeJson  Json?    @map("before_json")
+  afterJson   Json?    @map("after_json")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  actor       User?    @relation("AuditActor", fields: [actorUserId], references: [id])
+
+  @@index([entityType, entityId])
+  @@map("audit_logs")
+}
