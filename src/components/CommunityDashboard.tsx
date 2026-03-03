@@ -187,7 +187,7 @@ export async function CommunityDashboard() {
                       ? <span className="public-muted-cell">-</span>
                       : (
                         <div className="link-button-group">
-                          {row.txLinksUtt.map((link, index) => (
+                          {row.txLinksUtt.map((link) => (
                             <a
                               key={link}
                               href={link}
@@ -207,7 +207,7 @@ export async function CommunityDashboard() {
                       ? <span className="public-muted-cell">-</span>
                       : (
                         <div className="link-button-group">
-                          {row.txLinksUshark.map((link, index) => (
+                          {row.txLinksUshark.map((link) => (
                             <a
                               key={link}
                               href={link}
