@@ -150,14 +150,14 @@ export async function CommunityDashboard() {
             <tbody>
               {data.monthlyNftPool.map((row) => (
                 <tr key={row.month}>
-                  <td>{row.month}</td>
-                  <td>{formatUsd(row.nftPoolTotal)}</td>
-                  <td>{formatUsd(row.bronzeTotal)}</td>
-                  <td>{formatUsd(row.silverTotal)}</td>
-                  <td>{formatUsd(row.goldTotal)}</td>
-                  <td>{formatUsd(row.bronzePerNft)}</td>
-                  <td>{formatUsd(row.silverPerNft)}</td>
-                  <td>{formatUsd(row.goldPerNft)}</td>
+                  <td data-label="Monat">{row.month}</td>
+                  <td data-label="NFT Pool Gesamt">{formatUsd(row.nftPoolTotal)}</td>
+                  <td data-label="Bronze">{formatUsd(row.bronzeTotal)}</td>
+                  <td data-label="Silber">{formatUsd(row.silverTotal)}</td>
+                  <td data-label="Gold">{formatUsd(row.goldTotal)}</td>
+                  <td data-label="Bronze je NFT">{formatUsd(row.bronzePerNft)}</td>
+                  <td data-label="Silber je NFT">{formatUsd(row.silverPerNft)}</td>
+                  <td data-label="Gold je NFT">{formatUsd(row.goldPerNft)}</td>
                 </tr>
               ))}
             </tbody>
@@ -181,9 +181,9 @@ export async function CommunityDashboard() {
             <tbody>
               {data.burningMonthly.map((row) => (
                 <tr key={row.month}>
-                  <td>{row.month}</td>
-                  <td>{formatToken(row.uttAmount)}</td>
-                  <td>
+                  <td data-label="Monat">{row.month}</td>
+                  <td data-label="UTT Amount">{formatToken(row.uttAmount)}</td>
+                  <td data-label="UTT Links">
                     {row.txLinksUtt.length === 0
                       ? <span className="public-muted-cell">-</span>
                       : (
@@ -202,8 +202,8 @@ export async function CommunityDashboard() {
                         </div>
                       )}
                   </td>
-                  <td>{formatToken(row.usharkAmount)}</td>
-                  <td>
+                  <td data-label="USHARK Amount">{formatToken(row.usharkAmount)}</td>
+                  <td data-label="USHARK Links">
                     {row.txLinksUshark.length === 0
                       ? <span className="public-muted-cell">-</span>
                       : (
