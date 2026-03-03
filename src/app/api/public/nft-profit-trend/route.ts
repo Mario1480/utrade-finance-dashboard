@@ -5,6 +5,9 @@ import {
   monthKeyToDate,
 } from "@/lib/community-dashboard";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export async function GET() {
   const trend = [] as Array<{
     month: string;

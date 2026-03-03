@@ -240,33 +240,28 @@ export async function getCommunityMonthStatusOverview() {
 }
 
 export async function getPublishedMonthKeys(): Promise<string[]> {
-  try {
-    await ensureCommunityMonthStatuses();
-    const approvedMonths = await getApprovedMonthKeys();
+  await ensureCommunityMonthStatuses();
+  const approvedMonths = await getApprovedMonthKeys();
 
-    if (approvedMonths.length === 0) {
-      return [];
-    }
-
-    const statuses = await prisma.communityMonthStatus.findMany({
-      where: { month: { in: approvedMonths.map((month) => monthKeyToDate(month)) } },
-      select: { month: true, isClosed: true },
-    });
-
-    const statusMap: CommunityMonthStatusMap = statuses.reduce(
-      (acc, row) => {
-        acc[dateToMonthString(row.month)] = { isClosed: row.isClosed };
-        return acc;
-      },
-      {} as CommunityMonthStatusMap,
-    );
-
-    const currentMonth = dateToMonthString(getCurrentUtcMonthStart());
-    return selectPublishedMonths(approvedMonths, statusMap, currentMonth);
-  } catch (error) {
-    console.error("[community-dashboard] failed to read published months", error);
+  if (approvedMonths.length === 0) {
     return [];
   }
+
+  const statuses = await prisma.communityMonthStatus.findMany({
+    where: { month: { in: approvedMonths.map((month) => monthKeyToDate(month)) } },
+    select: { month: true, isClosed: true },
+  });
+
+  const statusMap: CommunityMonthStatusMap = statuses.reduce(
+    (acc, row) => {
+      acc[dateToMonthString(row.month)] = { isClosed: row.isClosed };
+      return acc;
+    },
+    {} as CommunityMonthStatusMap,
+  );
+
+  const currentMonth = dateToMonthString(getCurrentUtcMonthStart());
+  return selectPublishedMonths(approvedMonths, statusMap, currentMonth);
 }
 
 export async function buildCommunityDashboardData() {

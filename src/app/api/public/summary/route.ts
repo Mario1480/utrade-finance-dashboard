@@ -5,6 +5,9 @@ import {
 } from "@/lib/community-dashboard";
 import { getMonthlyDashboard } from "@/lib/calculations";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export async function GET() {
   const entries = [] as Array<{
     month: string;
