@@ -163,6 +163,24 @@ export async function CommunityDashboard() {
             </tbody>
           </table>
         </div>
+        <div className="public-mobile-accordion">
+          {data.monthlyNftPool.map((row) => (
+            <details key={row.month} className="public-mobile-item">
+              <summary>
+                <span>{row.month}</span>
+                <strong>{formatUsd(row.nftPoolTotal)}</strong>
+              </summary>
+              <div className="public-mobile-grid">
+                <div><span>Bronze</span><strong>{formatUsd(row.bronzeTotal)}</strong></div>
+                <div><span>Silber</span><strong>{formatUsd(row.silverTotal)}</strong></div>
+                <div><span>Gold</span><strong>{formatUsd(row.goldTotal)}</strong></div>
+                <div><span>Bronze je NFT</span><strong>{formatUsd(row.bronzePerNft)}</strong></div>
+                <div><span>Silber je NFT</span><strong>{formatUsd(row.silverPerNft)}</strong></div>
+                <div><span>Gold je NFT</span><strong>{formatUsd(row.goldPerNft)}</strong></div>
+              </div>
+            </details>
+          ))}
+        </div>
       </section>
 
       <section className="public-card public-table-card">
@@ -226,6 +244,60 @@ export async function CommunityDashboard() {
               ))}
             </tbody>
           </table>
+        </div>
+        <div className="public-mobile-accordion">
+          {data.burningMonthly.map((row) => (
+            <details key={row.month} className="public-mobile-item">
+              <summary>
+                <span>{row.month}</span>
+                <strong>UTT {formatToken(row.uttAmount)} | USHARK {formatToken(row.usharkAmount)}</strong>
+              </summary>
+              <div className="public-mobile-grid">
+                <div><span>UTT Amount</span><strong>{formatToken(row.uttAmount)}</strong></div>
+                <div>
+                  <span>UTT Links</span>
+                  {row.txLinksUtt.length === 0
+                    ? <strong>-</strong>
+                    : (
+                      <div className="link-button-group">
+                        {row.txLinksUtt.map((link) => (
+                          <a
+                            key={link}
+                            href={link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="link-button public-link-button"
+                          >
+                            Open
+                          </a>
+                        ))}
+                      </div>
+                    )}
+                </div>
+                <div><span>USHARK Amount</span><strong>{formatToken(row.usharkAmount)}</strong></div>
+                <div>
+                  <span>USHARK Links</span>
+                  {row.txLinksUshark.length === 0
+                    ? <strong>-</strong>
+                    : (
+                      <div className="link-button-group">
+                        {row.txLinksUshark.map((link) => (
+                          <a
+                            key={link}
+                            href={link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="link-button public-link-button"
+                          >
+                            Open
+                          </a>
+                        ))}
+                      </div>
+                    )}
+                </div>
+              </div>
+            </details>
+          ))}
         </div>
       </section>
     </div>
