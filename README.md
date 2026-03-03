@@ -76,13 +76,24 @@ npm run seed
 npm run import:sheet
 ```
 
-7. Dev Server starten:
+7. Stabilen lokalen Modus starten (empfohlen):
+
+```bash
+npm run local
+```
+
+Das baut die App und startet sie fest auf `http://localhost:3001`.
+
+8. Alternativ Dev Server starten:
 
 ```bash
 npm run dev
 ```
 
-Login dann unter `http://localhost:3000/admin/login`.
+Login dann unter:
+
+- Stabil: `http://localhost:3001/admin/login`
+- Dev: `http://localhost:3000/admin/login` (oder naechster freier Port)
 
 ## Default Superadmin
 

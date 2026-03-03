@@ -6,6 +6,8 @@
     "dev": "next dev",
     "build": "prisma generate && next build",
     "start": "next start",
+    "start:local": "next start -p 3001",
+    "local": "npm run build && npm run start:local",
     "lint": "next lint",
     "test": "vitest run",
     "test:watch": "vitest",

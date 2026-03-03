@@ -1,36 +1,4 @@
-"use client";
-
-import { useEffect, useMemo, useState } from "react";
-
-type CommunityResponse = {
-  months: string[];
-  monthlyNftPool: Array<{
-    month: string;
-    nftPoolTotal: number;
-    bronzeTotal: number;
-    silverTotal: number;
-    goldTotal: number;
-    bronzePerNft: number;
-    silverPerNft: number;
-    goldPerNft: number;
-  }>;
-  burningMonthly: Array<{
-    month: string;
-    uttAmount: number;
-    usharkAmount: number;
-    txLinksUtt: string[];
-    txLinksUshark: string[];
-  }>;
-  totals: {
-    profitAllMonths: number;
-    nftPoolAllMonths: number;
-    profitBronzeAllMonths: number;
-    profitSilverAllMonths: number;
-    profitGoldAllMonths: number;
-    burningTotalUtt: number;
-    burningTotalUshark: number;
-  };
-};
+import { buildCommunityDashboardData } from "@/lib/community-dashboard";
 
 function formatUsd(value: number): string {
   return `$${value.toLocaleString("de-DE", {
@@ -46,123 +14,77 @@ function formatToken(value: number): string {
   });
 }
 
-export function CommunityDashboard() {
-  const [data, setData] = useState<CommunityResponse | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+export async function CommunityDashboard() {
+  let data: Awaited<ReturnType<typeof buildCommunityDashboardData>> | null = null;
 
-  useEffect(() => {
-    async function load() {
-      setLoading(true);
-      setError(null);
-
-      try {
-        const response = await fetch("/api/public/community-dashboard");
-        const json = await response.json();
-
-        if (!response.ok) {
-          throw new Error(json.error ?? "Community-Daten konnten nicht geladen werden");
-        }
-
-        setData(json.data);
-      } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "Unbekannter Fehler beim Laden",
-        );
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    void load();
-  }, []);
-
-  const maxNftPool = useMemo(() => {
-    if (!data || data.monthlyNftPool.length === 0) {
-      return 1;
-    }
-
-    return Math.max(...data.monthlyNftPool.map((row) => row.nftPoolTotal), 1);
-  }, [data]);
-
-  const maxTierValue = useMemo(() => {
-    if (!data || data.monthlyNftPool.length === 0) {
-      return 1;
-    }
-
-    return Math.max(
-      ...data.monthlyNftPool.flatMap((row) => [
-        row.bronzeTotal,
-        row.silverTotal,
-        row.goldTotal,
-      ]),
-      1,
-    );
-  }, [data]);
-
-  if (loading) {
-    return (
-      <div className="panel">
-        <h2>Community Dashboard</h2>
-        <p>Daten werden geladen...</p>
-      </div>
-    );
+  try {
+    data = await buildCommunityDashboardData();
+  } catch {
+    return <div className="alert error public-alert">Community-Daten konnten nicht geladen werden.</div>;
   }
 
-  if (error) {
-    return <div className="alert error">{error}</div>;
-  }
-
-  if (!data || data.months.length === 0) {
+  if (!data.months.length) {
     return (
-      <div className="panel">
+      <section className="public-card public-state-card">
         <h2>Community Dashboard</h2>
         <p>Aktuell sind keine geschlossenen Monate für die Community freigegeben.</p>
-      </div>
+      </section>
     );
   }
 
+  const maxNftPool = Math.max(...data.monthlyNftPool.map((row) => row.nftPoolTotal), 1);
+  const maxTierValue = Math.max(
+    ...data.monthlyNftPool.flatMap((row) => [
+      row.bronzeTotal,
+      row.silverTotal,
+      row.goldTotal,
+    ]),
+    1,
+  );
+
   return (
-    <div className="grid" style={{ gap: 16 }}>
-      <div className="panel">
+    <div className="public-stack">
+      <section className="public-card public-hero">
+        <p className="public-chip">Community Freigabe</p>
         <h1>uTrade Community Dashboard</h1>
         <p>
           Veröffentlicht werden nur geschlossene Monate mit freigegebenen Werten.
         </p>
-      </div>
+      </section>
 
-      <div className="grid grid-2">
-        <div className="panel">
-          <p>Gesamt Profit (alle veröffentlichten Monate)</p>
-          <h3>{formatUsd(data.totals.profitAllMonths)}</h3>
-        </div>
-        <div className="panel">
-          <p>NFT Pool Gesamt</p>
-          <h3>{formatUsd(data.totals.nftPoolAllMonths)}</h3>
-        </div>
-        <div className="panel">
-          <p>Profit Bronze Gesamt</p>
-          <h3>{formatUsd(data.totals.profitBronzeAllMonths)}</h3>
-        </div>
-        <div className="panel">
-          <p>Profit Silber Gesamt</p>
-          <h3>{formatUsd(data.totals.profitSilverAllMonths)}</h3>
-        </div>
-        <div className="panel">
-          <p>Profit Gold Gesamt</p>
-          <h3>{formatUsd(data.totals.profitGoldAllMonths)}</h3>
-        </div>
-        <div className="panel">
-          <p>Gesamt Burning</p>
-          <h3>
-            UTT: {formatToken(data.totals.burningTotalUtt)} | USHARK: {formatToken(data.totals.burningTotalUshark)}
+      <section className="public-kpi-grid">
+        <article className="public-card public-kpi-card">
+          <p className="public-kpi-label">Gesamt Profit (alle veröffentlichten Monate)</p>
+          <h3 className="public-kpi-value">{formatUsd(data.totals.profitAllMonths)}</h3>
+        </article>
+        <article className="public-card public-kpi-card">
+          <p className="public-kpi-label">NFT Pool Gesamt</p>
+          <h3 className="public-kpi-value">{formatUsd(data.totals.nftPoolAllMonths)}</h3>
+        </article>
+        <article className="public-card public-kpi-card">
+          <p className="public-kpi-label">Profit Bronze Gesamt</p>
+          <h3 className="public-kpi-value">{formatUsd(data.totals.profitBronzeAllMonths)}</h3>
+        </article>
+        <article className="public-card public-kpi-card">
+          <p className="public-kpi-label">Profit Silber Gesamt</p>
+          <h3 className="public-kpi-value">{formatUsd(data.totals.profitSilverAllMonths)}</h3>
+        </article>
+        <article className="public-card public-kpi-card">
+          <p className="public-kpi-label">Profit Gold Gesamt</p>
+          <h3 className="public-kpi-value">{formatUsd(data.totals.profitGoldAllMonths)}</h3>
+        </article>
+        <article className="public-card public-kpi-card">
+          <p className="public-kpi-label">Gesamt Burning</p>
+          <h3 className="public-kpi-value public-kpi-multi">
+            <span>UTT: {formatToken(data.totals.burningTotalUtt)}</span>
+            <span>USHARK: {formatToken(data.totals.burningTotalUshark)}</span>
           </h3>
-        </div>
-      </div>
+        </article>
+      </section>
 
-      <div className="panel">
+      <section className="public-card public-chart-card">
         <h3>Monatlicher NFT Pool (Chart)</h3>
-        <p style={{ marginBottom: 10 }}>
+        <p className="public-chart-subtitle">
           Pro Monat: Gesamtpool sowie Tier-Balken (Bronze, Silber, Gold).
         </p>
         <div className="community-tier-legend">
@@ -206,101 +128,105 @@ export function CommunityDashboard() {
             </div>
           ))}
         </div>
-      </div>
+      </section>
 
-      <div className="panel">
+      <section className="public-card public-table-card">
         <h3>Monatliche NFT-Pool-Aufteilung nach Tier</h3>
-        <table>
-          <thead>
-            <tr>
-              <th>Monat</th>
-              <th>NFT Pool Gesamt</th>
-              <th>Bronze</th>
-              <th>Silber</th>
-              <th>Gold</th>
-              <th>Bronze je NFT</th>
-              <th>Silber je NFT</th>
-              <th>Gold je NFT</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.monthlyNftPool.map((row) => (
-              <tr key={row.month}>
-                <td>{row.month}</td>
-                <td>{formatUsd(row.nftPoolTotal)}</td>
-                <td>{formatUsd(row.bronzeTotal)}</td>
-                <td>{formatUsd(row.silverTotal)}</td>
-                <td>{formatUsd(row.goldTotal)}</td>
-                <td>{formatUsd(row.bronzePerNft)}</td>
-                <td>{formatUsd(row.silverPerNft)}</td>
-                <td>{formatUsd(row.goldPerNft)}</td>
+        <div className="public-table-wrap">
+          <table className="public-table">
+            <thead>
+              <tr>
+                <th>Monat</th>
+                <th>NFT Pool Gesamt</th>
+                <th>Bronze</th>
+                <th>Silber</th>
+                <th>Gold</th>
+                <th>Bronze je NFT</th>
+                <th>Silber je NFT</th>
+                <th>Gold je NFT</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {data.monthlyNftPool.map((row) => (
+                <tr key={row.month}>
+                  <td>{row.month}</td>
+                  <td>{formatUsd(row.nftPoolTotal)}</td>
+                  <td>{formatUsd(row.bronzeTotal)}</td>
+                  <td>{formatUsd(row.silverTotal)}</td>
+                  <td>{formatUsd(row.goldTotal)}</td>
+                  <td>{formatUsd(row.bronzePerNft)}</td>
+                  <td>{formatUsd(row.silverPerNft)}</td>
+                  <td>{formatUsd(row.goldPerNft)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
 
-      <div className="panel">
+      <section className="public-card public-table-card">
         <h3>Monatliche Burnings</h3>
-        <table>
-          <thead>
-            <tr>
-              <th>Monat</th>
-              <th>UTT Amount</th>
-              <th>UTT Links</th>
-              <th>USHARK Amount</th>
-              <th>USHARK Links</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.burningMonthly.map((row) => (
-              <tr key={row.month}>
-                <td>{row.month}</td>
-                <td>{formatToken(row.uttAmount)}</td>
-                <td>
-                  {row.txLinksUtt.length === 0
-                    ? "-"
-                    : (
-                      <div className="link-button-group">
-                        {row.txLinksUtt.map((link, index) => (
-                          <a
-                            key={link}
-                            href={link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="link-button"
-                          >
-                            UTT Tx {index + 1}
-                          </a>
-                        ))}
-                      </div>
-                    )}
-                </td>
-                <td>{formatToken(row.usharkAmount)}</td>
-                <td>
-                  {row.txLinksUshark.length === 0
-                    ? "-"
-                    : (
-                      <div className="link-button-group">
-                        {row.txLinksUshark.map((link, index) => (
-                          <a
-                            key={link}
-                            href={link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="link-button"
-                          >
-                            USHARK Tx {index + 1}
-                          </a>
-                        ))}
-                      </div>
-                    )}
-                </td>
+        <div className="public-table-wrap">
+          <table className="public-table">
+            <thead>
+              <tr>
+                <th>Monat</th>
+                <th>UTT Amount</th>
+                <th>UTT Links</th>
+                <th>USHARK Amount</th>
+                <th>USHARK Links</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {data.burningMonthly.map((row) => (
+                <tr key={row.month}>
+                  <td>{row.month}</td>
+                  <td>{formatToken(row.uttAmount)}</td>
+                  <td>
+                    {row.txLinksUtt.length === 0
+                      ? <span className="public-muted-cell">-</span>
+                      : (
+                        <div className="link-button-group">
+                          {row.txLinksUtt.map((link, index) => (
+                            <a
+                              key={link}
+                              href={link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="link-button public-link-button"
+                            >
+                              Open
+                            </a>
+                          ))}
+                        </div>
+                      )}
+                  </td>
+                  <td>{formatToken(row.usharkAmount)}</td>
+                  <td>
+                    {row.txLinksUshark.length === 0
+                      ? <span className="public-muted-cell">-</span>
+                      : (
+                        <div className="link-button-group">
+                          {row.txLinksUshark.map((link, index) => (
+                            <a
+                              key={link}
+                              href={link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="link-button public-link-button"
+                            >
+                              Open
+                            </a>
+                          ))}
+                        </div>
+                      )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
     </div>
   );
 }
