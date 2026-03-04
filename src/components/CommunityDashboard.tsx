@@ -1,34 +1,42 @@
 import { buildCommunityDashboardData } from "@/lib/community-dashboard";
+import { dashboardMessages, getNumberLocale, type PublicLang } from "@/lib/public-i18n";
 
-function formatUsd(value: number): string {
-  return `$${value.toLocaleString("de-DE", {
+function formatUsd(value: number, locale: string): string {
+  return `$${value.toLocaleString(locale, {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })}`;
 }
 
-function formatToken(value: number): string {
-  return value.toLocaleString("de-DE", {
+function formatToken(value: number, locale: string): string {
+  return value.toLocaleString(locale, {
     minimumFractionDigits: 0,
     maximumFractionDigits: 6,
   });
 }
 
-export async function CommunityDashboard() {
+type Props = {
+  lang: PublicLang;
+};
+
+export async function CommunityDashboard({ lang }: Props) {
   let data: Awaited<ReturnType<typeof buildCommunityDashboardData>> | null = null;
 
   try {
     data = await buildCommunityDashboardData();
   } catch (error) {
     console.error("[community-dashboard] render failed", error);
-    return <div className="alert error public-alert">Community-Daten konnten nicht geladen werden.</div>;
+    return <div className="alert error public-alert">{dashboardMessages[lang].errorLoad}</div>;
   }
+
+  const t = dashboardMessages[lang];
+  const locale = getNumberLocale(lang);
 
   if (!data.months.length) {
     return (
       <section className="public-card public-state-card">
-        <h2>Community Dashboard</h2>
-        <p>Aktuell sind keine geschlossenen Monate für die Community freigegeben.</p>
+        <h2>{t.emptyTitle}</h2>
+        <p>{t.emptyText}</p>
       </section>
     );
   }
@@ -46,52 +54,48 @@ export async function CommunityDashboard() {
   return (
     <div className="public-stack">
       <section className="public-card public-hero">
-        <p className="public-chip">Community Freigabe</p>
-        <h1>uTrade Community Dashboard</h1>
-        <p>
-          Veröffentlicht werden nur geschlossene Monate mit freigegebenen Werten.
-        </p>
+        <p className="public-chip">{t.heroChip}</p>
+        <h1>{t.heroTitle}</h1>
+        <p>{t.heroText}</p>
       </section>
 
       <section className="public-kpi-grid">
         <article className="public-card public-kpi-card">
-          <p className="public-kpi-label">Gesamt Profit (alle veröffentlichten Monate)</p>
-          <h3 className="public-kpi-value">{formatUsd(data.totals.profitAllMonths)}</h3>
+          <p className="public-kpi-label">{t.kpiTotalProfit}</p>
+          <h3 className="public-kpi-value">{formatUsd(data.totals.profitAllMonths, locale)}</h3>
         </article>
         <article className="public-card public-kpi-card">
-          <p className="public-kpi-label">NFT Pool Gesamt</p>
-          <h3 className="public-kpi-value">{formatUsd(data.totals.nftPoolAllMonths)}</h3>
+          <p className="public-kpi-label">{t.kpiNftPool}</p>
+          <h3 className="public-kpi-value">{formatUsd(data.totals.nftPoolAllMonths, locale)}</h3>
         </article>
         <article className="public-card public-kpi-card">
-          <p className="public-kpi-label">Profit Bronze Gesamt</p>
-          <h3 className="public-kpi-value">{formatUsd(data.totals.profitBronzeAllMonths)}</h3>
+          <p className="public-kpi-label">{t.kpiBronze}</p>
+          <h3 className="public-kpi-value">{formatUsd(data.totals.profitBronzeAllMonths, locale)}</h3>
         </article>
         <article className="public-card public-kpi-card">
-          <p className="public-kpi-label">Profit Silber Gesamt</p>
-          <h3 className="public-kpi-value">{formatUsd(data.totals.profitSilverAllMonths)}</h3>
+          <p className="public-kpi-label">{t.kpiSilver}</p>
+          <h3 className="public-kpi-value">{formatUsd(data.totals.profitSilverAllMonths, locale)}</h3>
         </article>
         <article className="public-card public-kpi-card">
-          <p className="public-kpi-label">Profit Gold Gesamt</p>
-          <h3 className="public-kpi-value">{formatUsd(data.totals.profitGoldAllMonths)}</h3>
+          <p className="public-kpi-label">{t.kpiGold}</p>
+          <h3 className="public-kpi-value">{formatUsd(data.totals.profitGoldAllMonths, locale)}</h3>
         </article>
         <article className="public-card public-kpi-card">
-          <p className="public-kpi-label">Gesamt Burning</p>
+          <p className="public-kpi-label">{t.kpiBurning}</p>
           <h3 className="public-kpi-value public-kpi-multi">
-            <span>UTT: {formatToken(data.totals.burningTotalUtt)}</span>
-            <span>USHARK: {formatToken(data.totals.burningTotalUshark)}</span>
+            <span>{t.tokenUtt}: {formatToken(data.totals.burningTotalUtt, locale)}</span>
+            <span>{t.tokenUshark}: {formatToken(data.totals.burningTotalUshark, locale)}</span>
           </h3>
         </article>
       </section>
 
       <section className="public-card public-chart-card">
-        <h3>Monatlicher NFT Pool (Chart)</h3>
-        <p className="public-chart-subtitle">
-          Pro Monat: Gesamtpool sowie Tier-Balken (Bronze, Silber, Gold).
-        </p>
+        <h3>{t.chartTitle}</h3>
+        <p className="public-chart-subtitle">{t.chartText}</p>
         <div className="community-tier-legend">
-          <span className="community-tier-pill bronze">Bronze</span>
-          <span className="community-tier-pill silver">Silber</span>
-          <span className="community-tier-pill gold">Gold</span>
+          <span className="community-tier-pill bronze">{t.tierBronze}</span>
+          <span className="community-tier-pill silver">{t.tierSilver}</span>
+          <span className="community-tier-pill gold">{t.tierGold}</span>
         </div>
         <div className="community-chart">
           {data.monthlyNftPool.map((row) => (
@@ -125,39 +129,39 @@ export async function CommunityDashboard() {
                   </div>
                 </div>
               </div>
-              <div className="community-chart-value">{formatUsd(row.nftPoolTotal)}</div>
+              <div className="community-chart-value">{formatUsd(row.nftPoolTotal, locale)}</div>
             </div>
           ))}
         </div>
       </section>
 
       <section className="public-card public-table-card">
-        <h3>Monatliche NFT-Pool-Aufteilung nach Tier</h3>
+        <h3>{t.nftTableTitle}</h3>
         <div className="public-table-wrap">
           <table className="public-table">
             <thead>
               <tr>
-                <th>Monat</th>
-                <th>NFT Pool Gesamt</th>
-                <th>Bronze</th>
-                <th>Silber</th>
-                <th>Gold</th>
-                <th>Bronze je NFT</th>
-                <th>Silber je NFT</th>
-                <th>Gold je NFT</th>
+                <th>{t.columnMonth}</th>
+                <th>{t.columnNftPoolTotal}</th>
+                <th>{t.columnBronze}</th>
+                <th>{t.columnSilver}</th>
+                <th>{t.columnGold}</th>
+                <th>{t.columnBronzePerNft}</th>
+                <th>{t.columnSilverPerNft}</th>
+                <th>{t.columnGoldPerNft}</th>
               </tr>
             </thead>
             <tbody>
               {data.monthlyNftPool.map((row) => (
                 <tr key={row.month}>
-                  <td data-label="Monat">{row.month}</td>
-                  <td data-label="NFT Pool Gesamt">{formatUsd(row.nftPoolTotal)}</td>
-                  <td data-label="Bronze">{formatUsd(row.bronzeTotal)}</td>
-                  <td data-label="Silber">{formatUsd(row.silverTotal)}</td>
-                  <td data-label="Gold">{formatUsd(row.goldTotal)}</td>
-                  <td data-label="Bronze je NFT">{formatUsd(row.bronzePerNft)}</td>
-                  <td data-label="Silber je NFT">{formatUsd(row.silverPerNft)}</td>
-                  <td data-label="Gold je NFT">{formatUsd(row.goldPerNft)}</td>
+                  <td data-label={t.columnMonth}>{row.month}</td>
+                  <td data-label={t.columnNftPoolTotal}>{formatUsd(row.nftPoolTotal, locale)}</td>
+                  <td data-label={t.columnBronze}>{formatUsd(row.bronzeTotal, locale)}</td>
+                  <td data-label={t.columnSilver}>{formatUsd(row.silverTotal, locale)}</td>
+                  <td data-label={t.columnGold}>{formatUsd(row.goldTotal, locale)}</td>
+                  <td data-label={t.columnBronzePerNft}>{formatUsd(row.bronzePerNft, locale)}</td>
+                  <td data-label={t.columnSilverPerNft}>{formatUsd(row.silverPerNft, locale)}</td>
+                  <td data-label={t.columnGoldPerNft}>{formatUsd(row.goldPerNft, locale)}</td>
                 </tr>
               ))}
             </tbody>
@@ -168,15 +172,15 @@ export async function CommunityDashboard() {
             <details key={row.month} className="public-mobile-item">
               <summary>
                 <span>{row.month}</span>
-                <strong>{formatUsd(row.nftPoolTotal)}</strong>
+                <strong>{formatUsd(row.nftPoolTotal, locale)}</strong>
               </summary>
               <div className="public-mobile-grid">
-                <div><span>Bronze</span><strong>{formatUsd(row.bronzeTotal)}</strong></div>
-                <div><span>Silber</span><strong>{formatUsd(row.silverTotal)}</strong></div>
-                <div><span>Gold</span><strong>{formatUsd(row.goldTotal)}</strong></div>
-                <div><span>Bronze je NFT</span><strong>{formatUsd(row.bronzePerNft)}</strong></div>
-                <div><span>Silber je NFT</span><strong>{formatUsd(row.silverPerNft)}</strong></div>
-                <div><span>Gold je NFT</span><strong>{formatUsd(row.goldPerNft)}</strong></div>
+                <div><span>{t.columnBronze}</span><strong>{formatUsd(row.bronzeTotal, locale)}</strong></div>
+                <div><span>{t.columnSilver}</span><strong>{formatUsd(row.silverTotal, locale)}</strong></div>
+                <div><span>{t.columnGold}</span><strong>{formatUsd(row.goldTotal, locale)}</strong></div>
+                <div><span>{t.columnBronzePerNft}</span><strong>{formatUsd(row.bronzePerNft, locale)}</strong></div>
+                <div><span>{t.columnSilverPerNft}</span><strong>{formatUsd(row.silverPerNft, locale)}</strong></div>
+                <div><span>{t.columnGoldPerNft}</span><strong>{formatUsd(row.goldPerNft, locale)}</strong></div>
               </div>
             </details>
           ))}
@@ -184,24 +188,24 @@ export async function CommunityDashboard() {
       </section>
 
       <section className="public-card public-table-card">
-        <h3>Monatliche Burnings</h3>
+        <h3>{t.burningTableTitle}</h3>
         <div className="public-table-wrap">
           <table className="public-table">
             <thead>
               <tr>
-                <th>Monat</th>
-                <th>UTT Amount</th>
-                <th>UTT Links</th>
-                <th>USHARK Amount</th>
-                <th>USHARK Links</th>
+                <th>{t.columnMonth}</th>
+                <th>{t.columnUttAmount}</th>
+                <th>{t.columnUttLinks}</th>
+                <th>{t.columnUsharkAmount}</th>
+                <th>{t.columnUsharkLinks}</th>
               </tr>
             </thead>
             <tbody>
               {data.burningMonthly.map((row) => (
                 <tr key={row.month}>
-                  <td data-label="Monat">{row.month}</td>
-                  <td data-label="UTT Amount">{formatToken(row.uttAmount)}</td>
-                  <td data-label="UTT Links">
+                  <td data-label={t.columnMonth}>{row.month}</td>
+                  <td data-label={t.columnUttAmount}>{formatToken(row.uttAmount, locale)}</td>
+                  <td data-label={t.columnUttLinks}>
                     {row.txLinksUtt.length === 0
                       ? <span className="public-muted-cell">-</span>
                       : (
@@ -214,14 +218,14 @@ export async function CommunityDashboard() {
                               rel="noopener noreferrer"
                               className="link-button public-link-button"
                             >
-                              Open
+                              {t.open}
                             </a>
                           ))}
                         </div>
                       )}
                   </td>
-                  <td data-label="USHARK Amount">{formatToken(row.usharkAmount)}</td>
-                  <td data-label="USHARK Links">
+                  <td data-label={t.columnUsharkAmount}>{formatToken(row.usharkAmount, locale)}</td>
+                  <td data-label={t.columnUsharkLinks}>
                     {row.txLinksUshark.length === 0
                       ? <span className="public-muted-cell">-</span>
                       : (
@@ -234,7 +238,7 @@ export async function CommunityDashboard() {
                               rel="noopener noreferrer"
                               className="link-button public-link-button"
                             >
-                              Open
+                              {t.open}
                             </a>
                           ))}
                         </div>
@@ -250,12 +254,12 @@ export async function CommunityDashboard() {
             <details key={row.month} className="public-mobile-item">
               <summary>
                 <span>{row.month}</span>
-                <strong>UTT {formatToken(row.uttAmount)} | USHARK {formatToken(row.usharkAmount)}</strong>
+                <strong>{t.tokenUtt} {formatToken(row.uttAmount, locale)} | {t.tokenUshark} {formatToken(row.usharkAmount, locale)}</strong>
               </summary>
               <div className="public-mobile-grid">
-                <div><span>UTT Amount</span><strong>{formatToken(row.uttAmount)}</strong></div>
+                <div><span>{t.columnUttAmount}</span><strong>{formatToken(row.uttAmount, locale)}</strong></div>
                 <div>
-                  <span>UTT Links</span>
+                  <span>{t.columnUttLinks}</span>
                   {row.txLinksUtt.length === 0
                     ? <strong>-</strong>
                     : (
@@ -268,15 +272,15 @@ export async function CommunityDashboard() {
                             rel="noopener noreferrer"
                             className="link-button public-link-button"
                           >
-                            Open
+                            {t.open}
                           </a>
                         ))}
                       </div>
                     )}
                 </div>
-                <div><span>USHARK Amount</span><strong>{formatToken(row.usharkAmount)}</strong></div>
+                <div><span>{t.columnUsharkAmount}</span><strong>{formatToken(row.usharkAmount, locale)}</strong></div>
                 <div>
-                  <span>USHARK Links</span>
+                  <span>{t.columnUsharkLinks}</span>
                   {row.txLinksUshark.length === 0
                     ? <strong>-</strong>
                     : (
@@ -289,7 +293,7 @@ export async function CommunityDashboard() {
                             rel="noopener noreferrer"
                             className="link-button public-link-button"
                           >
-                            Open
+                            {t.open}
                           </a>
                         ))}
                       </div>

@@ -331,6 +331,104 @@ code.badge {
   gap: 16px;
 }
 
+.public-theme .public-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 193, 7, 0.28);
+  background:
+    radial-gradient(circle at 12% 50%, rgba(255, 193, 7, 0.16) 0%, rgba(16, 24, 38, 0) 55%),
+    linear-gradient(160deg, rgba(16, 24, 38, 0.9) 0%, rgba(8, 13, 22, 0.96) 100%);
+  padding: 10px 14px;
+}
+
+.public-theme .public-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.public-theme .public-logo-wrap {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 193, 7, 0.4);
+  background: rgba(20, 129, 192, 0.18);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.public-theme .public-logo-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.public-theme .public-logo-fallback {
+  color: #ffe39d;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+}
+
+.public-theme .public-brand-text {
+  display: grid;
+  min-width: 0;
+}
+
+.public-theme .public-brand-text strong {
+  color: #f2f7ff;
+  font-size: 0.92rem;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.public-theme .public-brand-text span {
+  color: #9fbbd2;
+  font-size: 0.74rem;
+  line-height: 1.2;
+}
+
+.public-theme .public-lang-switch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.public-theme .public-lang-button {
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  background: rgba(16, 24, 38, 0.74);
+  color: #dce6f2;
+  border-radius: 10px;
+  padding: 6px 9px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.public-theme .public-lang-button:hover {
+  border-color: #4ea6de;
+  background: rgba(20, 129, 192, 0.2);
+}
+
+.public-theme .public-lang-button.active {
+  border-color: rgba(255, 193, 7, 0.75);
+  background: linear-gradient(120deg, rgba(255, 193, 7, 0.26) 0%, rgba(20, 129, 192, 0.24) 100%);
+  color: #fff2c6;
+}
+
 .public-theme .public-stack {
   display: grid;
   gap: 16px;
@@ -606,6 +704,10 @@ code.badge {
     padding-top: 14px;
   }
 
+  .public-theme .public-topbar {
+    padding: 10px 12px;
+  }
+
   .public-theme .container {
     padding: 14px;
   }
@@ -671,12 +773,40 @@ code.badge {
     align-items: stretch;
   }
 
+  .public-theme .public-brand-text strong {
+    font-size: 0.86rem;
+  }
+
+  .public-theme .public-brand-text span {
+    font-size: 0.69rem;
+  }
+
+  .public-theme .public-lang-button {
+    padding: 5px 8px;
+    font-size: 0.72rem;
+  }
+
   .public-theme .public-btn {
     width: 100%;
   }
 }
 
 @media (max-width: 640px) {
+  .public-theme .public-topbar {
+    align-items: flex-start;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .public-theme .public-brand {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .public-theme .public-lang-switch {
+    margin-left: auto;
+  }
+
   .public-theme .public-table-wrap {
     display: none;
   }
