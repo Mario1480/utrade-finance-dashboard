@@ -366,7 +366,9 @@ code.badge {
 .public-theme .public-logo-image {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  object-position: center;
+  padding: 2px;
 }
 
 .public-theme .public-logo-fallback {
